@@ -1,5 +1,5 @@
 from scrapy import Spider, Request
-from marijuana.items import CannaItem
+from canna.items import CannaItem
 
 class CannaSpider(Spider):
     name = 'canna_spider'
@@ -11,26 +11,28 @@ class CannaSpider(Spider):
 
         begin = 'https://www.leafly.com'
 
-        next_page = response.xpath('//*[@class="flex items-center pl-sm"]/@href').extract()
+        end = '/strains?page='
 
-        strain_urls = response.xpath('//*[@class="strain-playlist-grid"]/a/@href').extract()
+        next_page = response.xpath('//*[@class="flex items-center pl-sm"]/@href').getall()
 
-        #strain_data = response.xpath('//*[@id="__NEXT_DATA__"]/text()').extract()
+        strain_urls = response.xpath('//*[@class="strain-playlist-grid"]/a/@href').getall()
 
-        npages = int(response.xpath('//*[@class="mx-lg md:mx-xxl"]/text()').extract()[-1])
+        #strain_json = response.xpath('//*[@id="__NEXT_DATA__"]/text()').getall()
 
-        next_urls = [begin + url for url in next_page]
+        npages = int(response.xpath('//*[@class="mx-lg md:mx-xxl"]/text()').getall()[-1])
+
+
+        next_urls = [response.url] + [begin + end +'%d'%pgn for pgn in range (2, npages +1)]
+
 
         strain_url_combined = [begin + strain_url for strain_url in strain_urls]
 
-        try: 
-            for url in next_urls[:2]:
-                for strain_url in strain_url_combined:
-                #for strain_url in strain_url_combined[:3]:
-                    yield Request(strain_url, self.parse_canna)
-        except Exception as e:
-            print ('*' * 75)
-            print(e)
+        for url in next_urls:
+            yield Request(url)
+            for strain_url in strain_url_combined:
+                #count += 1
+                yield Request(strain_url, self.parse_canna)
+
             
 
 
@@ -38,105 +40,154 @@ class CannaSpider(Spider):
         print(response)
         print('#' * 75)
 
-        # begin_2 = 'https://www.leafly.com'
+        #strain_json = response.meta['strain_json']
+
+        terpenes = None
+        terp_bar_pct = None
+        terp_descrip = None
+        effects = None
+        eff_pct = None
+        feel_1 = None
+        feel_1_pct = None
+        feel_2 = None
+        feel_2_pct = None
+        feel_3 = None
+        feel_3_pct = None
+        feel_4 = None
+        feel_4_pct = None
+        feel_5 = None
+        feel_5_pct = None
+        help_1 = None
+        help_1_pct = None
+        help_2 = None
+        help_2_pct = None
+        help_3 = None
+        help_3_pct = None
+        help_4 = None
+        help_4_pct = None
+        help_5 = None
+        help_5_pct = None
+        neg_1 = None
+        neg_1_pct = None
+        neg_2 = None
+        neg_2_pct = None
+        neg_3 = None
+        neg_3_pct = None
+        neg_4 = None
+        neg_4_pct = None
+        neg_5 = None
+        neg_5_pct = None
+        grow_all = None
+        pop_loc = None
+
+        container = response.xpath('//main[@btc-container="true"]')
         
-        # div_eles = response.xpath('//*[@class="strain-tile justify-start relative"]/@href').extract()
+        for info in container: 
+            strain = response.xpath('//h1/text()').get()
 
-        # element = [begin_2 + div_ele for div_ele in div_eles]
-
-        container = response.xpath('//*[@class="container"]')
-        
-        for strain in container:
-            strain = response.xpath('//h1/text()').extract()
-            prim_type = response.xpath('//div[2]/header/div[1]/h2/a/text()').extract()
-            rating = response.xpath('//*[@class="font-bold text-green text-xs m-none"]/span/text()').extract_first()
-            n_rate_rvws = response.xpath('//*[@class="font-bold text-green text-xs m-none"]/a/text()').extract_first()
-            thc_pct = response.xpath('//*[@data-testid="cannabinoidsContainer"]//div/text()').extract_first()
-            terpenes = response.xpath('//*[@class="flex flex-col"]/@data-testid').extract()
-            terp_bar_pct = response.xpath('//*[@class="flex flex-col"]/@style').extract()
-            terp_descrip = response.xpath('//*[@class="font-normal"]/text()').extract()
-            calm_vs_ener = response.xpath('//*[@class="calm-energize__mark bg-leafly-white absolute top-0 bottom-0"]/@style').extract()
-            #strain_descrip = response.xpath('//*[@itemprop="description"]/p/text()').extract()
-            n_reported_effects = response.xpath('//*[@class="flex items-center font-mono text-xs"]/text()').extract_first()
-
+            prim_type = response.xpath('//div[2]/header/div[1]/h2/a/text()').get()
+            rating = response.xpath('//*[@class="font-bold text-green text-xs m-none"]/span/text()').get()
+            n_rate_rvws = response.xpath('//*[@class="font-bold text-green text-xs m-none"]/a/text()').get()
+            thc_pct = response.xpath('//*[@data-testid="cannabinoidsContainer"]//div/text()').get()
+            cbd_pct = response.xpath('//button[@data-testid="cannabinoids__carrot-link-button__cbd"]/div/text()').get()
             
-            #all Effects
-            effects = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()
+            terp_ctrl = response.xpath('//div[@class="border-t border-deep-green-40 flex items-center font-headers font-bold text-xs py-md"]')
+            if terp_ctrl:
+                terpenes = response.xpath('//*[@class="flex flex-col"]/@data-testid').getall()
+                terp_bar_pct = response.xpath('//*[@class="flex flex-col"]/@style').getall()
+                terp_descrip = response.xpath('//*[@class="font-normal"]/text()').getall()
+            
+            calm_vs_ener = response.xpath('//*[@class="calm-energize__mark bg-leafly-white absolute top-0 bottom-0"]/@style').get()
+            
+            n_reported_effects = response.xpath('//*[@class="flex items-center font-mono text-xs"]/text()').get()
+            
+            eff_ctrl = response.xpath('//section[@class="pt-xxl "]')
+            if eff_ctrl:             
+                #all Effects
+                effects = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()
 
-            #all pcts
-            eff_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()
+                #all pcts
+                eff_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()
 
-            #Effects - Feelings:
-            happy = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[0]
-            happy_pct =  response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[0]
+                #Effects - Feelings:
+                feel_1 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[0]
+                feel_1_pct =  response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[0]
 
-            euph = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[2]
-            euph_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[2]
+                feel_2 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[2]
+                feel_2_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[2]
 
-            relax = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[4]
-            relax_pct  = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[4]
+                feel_3 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[4]
+                feel_3_pct  = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[4]
 
-            uplift = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[6]
-            uplift_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[6]
+                feel_4 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[6]
+                feel_4_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[6]
 
-            creative = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[8]
-            creative_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[8]
+                feel_5 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[8]
+                feel_5_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[8]
 
-            #Effects - Helps with:
-            stress = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[10]
-            stress_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[10]
+                #Effects - Helps with:
+                help_1 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[10]
+                help_1_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[10]
 
-            anx = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[12]
-            anx_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[12]
+                help_2 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[12]
+                help_2_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[12]
 
-            depr = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[14]
-            depr_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[14]
+                help_3 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[14]
+                help_3_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[14]
 
-            pain = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[16]
-            pain_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[16]
+                help_4 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[16]
+                help_4_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[16]
 
-            insom = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[18]
-            insom_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[18]
+                help_5 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[18]
+                help_5_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[18]
 
-            #Effects - Negatives:
-            dry_mth = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[20]
-            dry_mth_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[20]
+                #Effects - Negatives:
+                neg_1 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[20]
+                neg_1_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[20]
 
-            dry_eye = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[22]
-            dry_eye_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[22]
+                neg_2 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[22]
+                neg_2_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[22]
 
-            para = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[24]
-            para_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[24]
+                neg_3 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[24]
+                neg_3_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[24]
 
-            dizzy = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[26]
-            dizzy_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[26]
+                neg_4 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[26]
+                neg_4_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[26]
 
-            anx_2 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').extract()[28]
-            anx_2_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').extract()[28]
+                neg_5 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[28]
+                neg_5_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[28]
 
             #Lineage:
-            try:
-                parent_1 = response.xpath('//*[@class="lineage__left-parent"]/a/div/div/text()').extract_first()
-                parent_2 = response.xpath('//*[@class="lineage__right-parent"]/a/div/div/text()').extract_first()
-                child_1 = response.xpath('//*[@class="lineage__left-child--two-parents"]/a/div/div/text()').extract_first()
-                child_2 = response.xpath('//*[@class="lineage__right-child--two-parents"]/a/div/div/text()').extract_first()
-            except Exception as e:
-                print ('=' * 75)
-                print(e)
+            parent_1 = response.xpath('//*[@class="lineage__left-parent"]/a/div/div/text()').get()
+            parent_2 = response.xpath('//*[@class="lineage__right-parent"]/a/div/div/text()').get()
+            child_1 = response.xpath('//*[@class="lineage__left-child--two-parents"]/a/div/div/text()').get()
+            child_2 = response.xpath('//*[@class="lineage__right-child--two-parents"]/a/div/div/text()').get()
 
             #Grow Info:
-            ##Check later on this for reg expressions
-
+                #all_tags: response.xpath('//*[@class="flex flex-row w-full mb-lg"]//@class').getall()
+                #all_text: #response.xpath('//*[@class="flex flex-row w-full mb-lg"]//text()').getall()
+            grw_ctrl = response.xpath('//section[@class="pt-xxl w-full lg:pt-none"]')
+            if grw_ctrl:
+                grow_all = response.xpath('//div[contains(@class,"bg-deep-green")]/text()').getall()
+            
             #Strain Popular Locations:
-            pop_loc = response.xpath('//*[@class="mb-lg"]/a/text()').extract()
+            pop_ctrl = response.xpath('//section[@class="pt-xxl "]')
+            if pop_ctrl:
+                pop_loc = response.xpath('//*[@class="mb-lg"]/a/text()').getall()
+
+
 
             item = CannaItem()
 
+            #item['strain_json'] = strain_json
+
             item['strain'] = strain
+
             item['prim_type'] = prim_type
             item['rating'] = rating
             item['n_rate_rvws'] = n_rate_rvws
             item['thc_pct'] = thc_pct
+            item['cbd_pct'] = cbd_pct
             item['terpenes'] = terpenes
             item['terp_bar_pct'] = terp_bar_pct
             item['terp_descrip'] = terp_descrip
@@ -145,57 +196,51 @@ class CannaSpider(Spider):
             item['effects'] = effects
             item['eff_pct'] = eff_pct
             
-            item['happy'] = happy
-            item['happy_pct'] = happy_pct
+            item['feel_1'] = feel_1
+            item['feel_1_pct'] = feel_1_pct
+            item['feel_2'] = feel_2
+            item['feel_2_pct'] = feel_2_pct
+            item['feel_3'] = feel_3
+            item['feel_3_pct'] = feel_3_pct
+            item['feel_4'] = feel_4
+            item['feel_4_pct'] = feel_4_pct
+            item['feel_5'] = feel_5
+            item['feel_5_pct'] = feel_5_pct
 
-            item['euph'] = euph
-            item['euph_pct'] = euph
+            item['help_1'] = help_1
+            item['help_1_pct'] =  help_1_pct
+            item['help_2'] = help_2
+            item['help_2_pct'] = help_2_pct 
+            item['help_3'] = help_3 
+            item['help_3_pct'] = help_3_pct
+            item['help_4'] = help_4 
+            item['help_4_pct'] = help_4_pct
+            item['help_5'] = help_5 
+            item['help_5_pct'] = help_5_pct
 
-            item['relax'] = relax
-            item['relax_pct'] = relax_pct
-
-            item['uplift'] = uplift
-            item['uplift_pct'] = uplift_pct
-
-            item['creative'] = creative 
-            item['creative_pct'] = creative_pct
-
-            item['stress'] = stress
-            item['stress_pct'] =  stress_pct
-
-            item['anx'] = anx
-            item['anx_pct'] = anx_pct 
-
-            item['depr'] = depr 
-            item['depr_pct'] = depr_pct
-            
-            item['pain'] = pain 
-            item['pain_pct'] = pain_pct
-            
-            item['insom'] = insom 
-            item['insom_pct'] = insom_pct
-
-            item['dry_mth'] = dry_mth
-            item['dry_mth_pct'] = dry_mth_pct
-
-            item['dry_eye'] = dry_eye
-            item['dry_eye_pct'] = dry_eye_pct
-
-            item['para'] = para 
-            item['para_pct'] = para_pct 
-
-            item['dizzy'] = dizzy
-            item['dizzy_pct'] = dizzy_pct
-
-            item['anx_2'] = anx_2 
-            item['anx_2_pct'] = anx_2_pct
+            item['neg_1'] = neg_1
+            item['neg_1_pct'] = neg_1_pct
+            item['neg_2'] = neg_2
+            item['neg_2_pct'] = neg_2_pct
+            item['neg_3'] = neg_3 
+            item['neg_3_pct'] = neg_3_pct 
+            item['neg_4'] = neg_4
+            item['neg_4_pct'] = neg_4_pct
+            item['neg_5'] = neg_5
+            item['neg_5_pct'] = neg_5_pct
 
             item['parent_1'] = parent_1
             item['parent_2'] = parent_2
             item['child_1'] = child_1
             item['child_2'] = child_2
 
+            item['grow_all'] = grow_all
+
+
             item['pop_loc'] = pop_loc
 
             yield item
+
+
+
 
