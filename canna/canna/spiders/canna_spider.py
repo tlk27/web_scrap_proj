@@ -23,14 +23,13 @@ class CannaSpider(Spider):
 
 
         next_urls = [response.url] + [begin + end +'%d'%pgn for pgn in range (2, npages +1)]
-
+ 
 
         strain_url_combined = [begin + strain_url for strain_url in strain_urls]
 
         for url in next_urls:
             yield Request(url)
             for strain_url in strain_url_combined:
-                #count += 1
                 yield Request(strain_url, self.parse_canna)
 
             
