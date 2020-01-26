@@ -46,6 +46,8 @@ class CannaSpider(Spider):
         terp_descrip = None
         effects = None
         eff_pct = None
+
+        ##comment out effects below for  more strain records
         feel_1 = None
         feel_1_pct = None
         feel_2 = None
@@ -76,6 +78,7 @@ class CannaSpider(Spider):
         neg_4_pct = None
         neg_5 = None
         neg_5_pct = None
+
         grow_all = None
         pop_loc = None
 
@@ -108,6 +111,7 @@ class CannaSpider(Spider):
                 #all pcts
                 eff_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()
 
+                ##comment out effects below for  more strain records
                 #Effects - Feelings:
                 feel_1 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[0]
                 feel_1_pct =  response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[0]
