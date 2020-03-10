@@ -9,8 +9,8 @@ import scrapy
 
 
 class CannaItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
+    
+    ##can be uncommented to include json data
     #strain_json = scrapy.Field()
 
     strain = scrapy.Field()
@@ -29,6 +29,8 @@ class CannaItem(scrapy.Item):
     effects = scrapy.Field()
     eff_pct = scrapy.Field()
 
+    ##comment out effects below for  more strain records
+    ##effects include feel_1 through neg_5_pct
     feel_1 = scrapy.Field()
     feel_1_pct = scrapy.Field()
     feel_2 = scrapy.Field()

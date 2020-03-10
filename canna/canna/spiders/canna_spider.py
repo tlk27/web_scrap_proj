@@ -8,7 +8,7 @@ class CannaSpider(Spider):
 
 
     def parse(self, response):
-
+        
         begin = 'https://www.leafly.com'
 
         end = '/strains?page='
@@ -17,6 +17,7 @@ class CannaSpider(Spider):
 
         strain_urls = response.xpath('//*[@class="strain-playlist-grid"]/a/@href').getall()
 
+        ##can be uncommented to include json data
         #strain_json = response.xpath('//*[@id="__NEXT_DATA__"]/text()').getall()
 
         npages = int(response.xpath('//*[@class="mx-lg md:mx-xxl"]/text()').getall()[-1])
@@ -39,6 +40,7 @@ class CannaSpider(Spider):
         print(response)
         print('#' * 75)
 
+        ##can be uncommented to include json data
         #strain_json = response.meta['strain_json']
 
         terpenes = None
@@ -111,7 +113,7 @@ class CannaSpider(Spider):
                 #all pcts
                 eff_pct = response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()
 
-                ##comment out effects below for  more strain records
+                ##comment out effects below for more strain records
                 #Effects - Feelings:
                 feel_1 = response.xpath('//*[@class="mb-xl relative w-full"]/div/text()').getall()[0]
                 feel_1_pct =  response.xpath('//*[@class="mb-xl relative w-full"]/div/span/text()').getall()[0]
@@ -182,6 +184,7 @@ class CannaSpider(Spider):
 
             item = CannaItem()
 
+            ##can be uncommented to include json data
             #item['strain_json'] = strain_json
 
             item['strain'] = strain
@@ -199,6 +202,8 @@ class CannaSpider(Spider):
             item['effects'] = effects
             item['eff_pct'] = eff_pct
             
+            ##comment out effects below for more strain records
+            ##effects include feel_1 through neg_5_pct
             item['feel_1'] = feel_1
             item['feel_1_pct'] = feel_1_pct
             item['feel_2'] = feel_2
